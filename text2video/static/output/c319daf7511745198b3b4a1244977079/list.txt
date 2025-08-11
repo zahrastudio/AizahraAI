@@ -1,1 +1,0 @@
-file '/data/data/com.termux/files/home/AizahraAI/text2video/static/output/c319daf7511745198b3b4a1244977079/slide_0.mp4'
