@@ -1,0 +1,29 @@
+import requests
+
+ACCESS_KEY = 'ygDEXtjNxxlLWToH51EHCslSQpLvLlAlU1HKH1n4rvY'
+
+def search_unsplash(query, per_page=5):
+    url = "https://api.unsplash.com/search/photos"
+    headers = {
+        "Authorization": f"Client-ID {ACCESS_KEY}"
+    }
+    params = {
+        "query": query,
+        "per_page": per_page
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        for i, photo in enumerate(data['results']):
+            print(f"{i+1}. {photo['description'] or photo['alt_description'] or 'No description'}")
+            print(f"   URL: {photo['urls']['regular']}")
+            print(f"   Photographer: {photo['user']['name']} (@{photo['user']['username']})")
+            print()
+    else:
+        print(f"Error: {response.status_code} - {response.text}")
+
+if __name__ == "__main__":
+    keyword = input("Search keyword: ")
+    search_unsplash(keyword)
+

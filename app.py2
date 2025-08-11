@@ -1,0 +1,79 @@
+from flask import Flask, render_template, send_from_directory
+import subprocess
+import json
+import requests
+import datetime
+from gtts import gTTS
+import os
+from geopy.geocoders import Nominatim
+
+app = Flask(__name__)
+geolocator = Nominatim(user_agent="aizahraai")
+
+def get_location():
+    try:
+        output = subprocess.check_output(["termux-location", "-p", "network"])
+        location = json.loads(output)
+        return location["latitude"], location["longitude"]
+    except Exception as e:
+        return None, None
+
+def get_city_name(lat, lon):
+    try:
+        location = geolocator.reverse((lat, lon), language="id")
+        return location.raw['address'].get('city', 'Kota Tidak Dikenal')
+    except:
+        return "Kota Tidak Dikenal"
+
+def get_prayer_times(lat, lon):
+    url = f"https://api.aladhan.com/v1/timings?latitude={lat}&longitude={lon}&method=2"
+    data = requests.get(url).json()
+    date = data["data"]["date"]["gregorian"]["date"]
+    hijri = data["data"]["date"]["hijri"]["date"]
+    timezone = data["data"]["meta"]["timezone"]
+    times = data["data"]["timings"]
+    return date, hijri, timezone, times
+
+def create_narration(city, masehi, hijriah, timezone, times):
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    teks = f"""
+Assalamu'alaikum.
+Hari ini tanggal {masehi} Masehi, bertepatan dengan {hijriah} Hijriah.
+Waktu lokal sekarang di {city}, zona {timezone}, adalah {now}.
+Jadwal sholat:
+Subuh pukul {times['Fajr']},
+Terbit pukul {times['Sunrise']},
+Dzuhur pukul {times['Dhuhr']},
+Ashar pukul {times['Asr']},
+Maghrib pukul {times['Maghrib']},
+Isya pukul {times['Isha']}.
+Semoga harimu diberkahi.
+"""
+    return teks.strip()
+
+def generate_tts(teks):
+    tts = gTTS(teks, lang='id')
+    path = "static/audio"
+    os.makedirs(path, exist_ok=True)
+    filename = os.path.join(path, "suara.mp3")
+    tts.save(filename)
+    return filename
+
+@app.route("/")
+def index():
+    lat, lon = get_location()
+    if lat is None or lon is None:
+        return "❌ Gagal mengambil lokasi. Pastikan GPS aktif dan Termux memiliki izin lokasi."
+    city = get_city_name(lat, lon)
+    masehi, hijriah, timezone, times = get_prayer_times(lat, lon)
+    teks = create_narration(city, masehi, hijriah, timezone, times)
+    generate_tts(teks)
+    return render_template("index.html", city=city, masehi=masehi, hijriah=hijriah, timezone=timezone, times=times, narration=teks)
+
+@app.route("/play")
+def play_audio():
+    return send_from_directory("static/audio", "suara.mp3")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=3000, debug=True)
+

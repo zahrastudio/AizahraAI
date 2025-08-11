@@ -1,0 +1,70 @@
+import os
+
+# Karakter bermasalah dan penggantinya
+REPLACEMENTS = {
+    "—": "-",    # em dash → minus biasa
+    "–": "-",    # en dash → minus biasa
+    "“": '"',    # kutip kiri → kutip biasa
+    "”": '"',    # kutip kanan → kutip biasa
+    "‘": "'",    # kutip satu kiri → apostrof biasa
+    "’": "'",    # kutip satu kanan → apostrof biasa
+    "…": "...",  # ellipsis → tiga titik
+    "\u00A0": " ", # non-breaking space → spasi biasa
+    "«": '"',
+    "»": '"',
+}
+
+# Ekstensi file yang ingin diproses
+TARGET_EXTENSIONS = {".py", ".html", ".json"}
+
+def fix_file(filepath):
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            content = f.read()
+    except Exception as e:
+        print(f"Failed to read {filepath}: {e}")
+        return False
+
+    fixed_content = content
+    for bad_char, good_char in REPLACEMENTS.items():
+        fixed_content = fixed_content.replace(bad_char, good_char)
+
+    if fixed_content != content:
+        try:
+            # Backup dulu file asli
+            backup_path = filepath + ".bak"
+            if not os.path.exists(backup_path):
+                os.rename(filepath, backup_path)
+            else:
+                # Jika sudah ada backup, langsung overwrite original
+                pass
+
+            # Tulis ulang dengan konten yang sudah diperbaiki
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(fixed_content)
+
+            print(f"[FIXED] {filepath}")
+            return True
+        except Exception as e:
+            print(f"Failed to write {filepath}: {e}")
+            return False
+    else:
+        print(f"[OK] {filepath} (no change)")
+        return True
+
+def scan_and_fix(root_dir="."):
+    fixed_files = []
+    for subdir, _, files in os.walk(root_dir):
+        for filename in files:
+            ext = os.path.splitext(filename)[1].lower()
+            if ext in TARGET_EXTENSIONS:
+                filepath = os.path.join(subdir, filename)
+                if fix_file(filepath):
+                    fixed_files.append(filepath)
+    return fixed_files
+
+if __name__ == "__main__":
+    print("Starting batch character fix...")
+    fixed = scan_and_fix(".")
+    print(f"\nTotal files fixed or checked: {len(fixed)}")
+

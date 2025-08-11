@@ -1,0 +1,43 @@
+from openai import OpenAI
+from api_key_manager import get_openai_api_key
+
+def main():
+    chat_history = []
+    print("===== AizahraAI Chat =====")
+
+    client = None
+
+    while True:
+        user_input = input("Anda: ").strip()
+        if user_input.lower() in ["/exit", "exit"]:
+            break
+        elif user_input == "":
+            continue
+
+        chat_history.append({"role": "user", "content": user_input})
+
+        try:
+            api_key = get_openai_api_key()
+            if client is None:
+                client = OpenAI(api_key=api_key)
+            else:
+                client.api_key = api_key
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=chat_history,
+                max_tokens=1000,
+                temperature=0.7,
+            )
+
+            assistant_message = response.choices[0].message.content.strip()
+            print("AizahraAI:", assistant_message)
+            chat_history.append({"role": "assistant", "content": assistant_message})
+
+        except Exception as e:
+            print(f"Error OpenAI API: {e}")
+            break
+
+
+
+

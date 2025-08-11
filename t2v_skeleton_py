@@ -1,0 +1,32 @@
+# t2v_skeleton.py (skeleton)
+import os, subprocess, requests
+from moviepy.editor import ImageSequenceClip, AudioFileClip, concatenate_videoclips
+
+OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+OUT_DIR = "/sdcard/AizahraAI/output"
+
+# 1) generate images via text2image/text2video API (contoh: Stable Diffusion API)
+def generate_frames(prompt, n_frames=8):
+    # panggil API text2video/text2image (implementasi spesifik untuk provider)
+    # simpan frames di OUT_DIR/frames/frame_000.png dst.
+    pass
+
+# 2) generate TTS audio (mis. OpenAI TTS or gTTS)
+def generate_tts(text, out_path):
+    # contoh: gunakan gTTS atau OpenAI TTS endpoint
+    pass
+
+# 3) compose video via ffmpeg or moviepy
+def compose_video(frames_dir, audio_path, out_video):
+    frames = sorted([f"{frames_dir}/{f}" for f in os.listdir(frames_dir)])
+    clip = ImageSequenceClip(frames, fps=12)
+    audio = AudioFileClip(audio_path)
+    clip = clip.set_audio(audio)
+    clip.write_videofile(out_video, codec="libx264", audio_codec="aac")
+
+if __name__ == "__main__":
+    prompt = "Seorang penulis di tepi laut saat senja, sinematik, dramatis"
+    generate_frames(prompt)
+    generate_tts("Ini adalah narasi Aizahra", "/tmp/narr.mp3")
+    compose_video("/tmp/frames", "/tmp/narr.mp3", "/tmp/output.mp4")
+

@@ -1,0 +1,26 @@
+import os
+import uuid
+from gtts import gTTS
+from pydub import AudioSegment
+from modules import audio
+
+def text_to_speech_ogg(text: str) -> str:
+    audio.ensure_audio_folder()
+
+    temp_mp3 = os.path.join(audio.AUDIO_FOLDER, f"{uuid.uuid4()}.mp3")
+    final_ogg = os.path.join(audio.AUDIO_FOLDER, f"{uuid.uuid4()}.ogg")
+
+    # Simpan sementara sebagai MP3
+    tts = gTTS(text=text, lang="id")
+    tts.save(temp_mp3)
+
+    # Konversi ke OGG (Opus) untuk voice Telegram
+    AudioSegment.from_mp3(temp_mp3).export(final_ogg, format="ogg", codec="libopus")
+
+    # Hapus file MP3 sementara
+    if os.path.exists(temp_mp3):
+        os.remove(temp_mp3)
+
+    return final_ogg
+
+

@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""
+AizahraAI Chat - Chat AI sederhana dengan OpenAI API terbaru (SDK v1.99+).
+
+Cara pakai:
+1. Pastikan sudah install openai SDK terbaru:
+   pip install --upgrade openai
+
+2. Set environment variable OPENAI_API_KEY:
+   export OPENAI_API_KEY="***REMOVED***xxx_your_api_key_here"
+
+3. Jalankan script ini:
+   python aizahraai_chat.py
+
+Perintah khusus:
+  /help  - Tampilkan bantuan
+  /reset - Reset sesi chat (hapus riwayat)
+  /exit  - Keluar program
+"""
+
+import os
+import sys
+from openai import OpenAI
+from openai.error import OpenAIError
+
+# Ambil API key dari environment variable
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    print("ERROR: Set environment variable OPENAI_API_KEY terlebih dahulu!")
+    sys.exit(1)
+
+# Inisialisasi client OpenAI
+client = OpenAI(api_key=OPENAI_API_KEY)
+chat_history = []
+
+def print_welcome():
+    print("===== AizahraAI Chat =====")
+    print("Ketik pesan untuk chat dengan AI.")
+    print("Perintah khusus:")
+    print("  /help  - Bantuan")
+    print("  /reset - Reset sesi chat")
+    print("  /exit  - Keluar program\n")
+
+def print_help():
+    print("""
+Perintah khusus:
+  /help  : Tampilkan bantuan ini
+  /reset : Reset sesi chat (hapus riwayat)
+  /exit  : Keluar dari aplikasi
+""")
+
+def chat(prompt):
+    global chat_history
+    # Siapkan pesan: system + history + user input terbaru
+    messages = [{"role": "system", "content": "Anda adalah AI pembantu yang ramah dan informatif."}]
+    for entry in chat_history:
+        messages.append({"role": "user", "content": entry["user"]})
+        messages.append({"role": "assistant", "content": entry["assistant"]})
+    messages.append({"role": "user", "content": prompt})
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # Ganti model sesuai kebutuhan dan akses Anda
+            messages=messages
+        )
+        answer = response.choices[0].message.content.strip()
+        # Simpan riwayat chat
+        chat_history.append({"user": prompt, "assistant": answer})
+        return answer
+    except OpenAIError as e:
+        return f"Error OpenAI API: {e}"
+    except Exception as e:
+        return f"Terjadi kesalahan: {e}"
+
+def main():
+    print_welcome()
+    while True:
+        user_input = input("Anda: ").strip()
+        if user_input == "":
+            continue
+        if user_input == "/help":
+            print_help()
+        elif user_input == "/reset":
+            chat_history.clear()
+            print("Sesi chat telah di-reset.")
+        elif user_input == "/exit":
+            print("Keluar dari program. Terima kasih telah menggunakan AizahraAI.")
+            break
+        else:
+            response = chat(user_input)
+            print("AizahraAI:", response)
+
+if __name__ == "__main__":
+    main()
+

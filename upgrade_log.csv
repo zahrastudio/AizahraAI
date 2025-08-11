@@ -1,0 +1,9 @@
+Package,Version
+moviepy,2.2.1
+gTTS,2.5.4
+pydub,0.25.1
+requests,2.32.4
+feedparser,6.0.11
+pyvis,0.3.2
+matplotlib,3.10.5
+networkx,3.5

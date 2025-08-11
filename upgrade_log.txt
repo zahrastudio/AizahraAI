@@ -1,0 +1,42 @@
+===== Script run at: 2025-08-09 17:38:08 =====
+Package         | Local Version   | PyPI Version    | Status
+----------------------------------------------------------------------
+moviepy         | 2.2.1           | 2.2.1           | Up to date
+gTTS            | 2.5.4           | 2.5.4           | Up to date
+pydub           | 0.25.1          | 0.25.1          | Up to date
+requests        | 2.32.4          | 2.32.4          | Up to date
+feedparser      | 6.0.11          | 6.0.11          | Up to date
+pyvis           | 0.3.2           | 0.3.2           | Up to date
+matplotlib      | 3.10.5          | 3.10.5          | Up to date
+networkx        | 3.5             | 3.5             | Up to date
+Log saved to upgrade_log.csv
+===== Script finished at: 2025-08-09 17:38:16 =====
+
+===== Script run at: 2025-08-09 17:41:40 =====
+Package         | Local Version   | PyPI Version    | Status
+----------------------------------------------------------------------
+moviepy         | 2.2.1           | 2.2.1           | Up to date
+gTTS            | 2.5.4           | 2.5.4           | Up to date
+pydub           | 0.25.1          | 0.25.1          | Up to date
+requests        | 2.32.4          | 2.32.4          | Up to date
+feedparser      | 6.0.11          | 6.0.11          | Up to date
+pyvis           | 0.3.2           | 0.3.2           | Up to date
+matplotlib      | 3.10.5          | 3.10.5          | Up to date
+networkx        | 3.5             | 3.5             | Up to date
+Log saved to upgrade_log.csv
+===== Script finished at: 2025-08-09 17:41:48 =====
+
+===== Script run at: 2025-08-09 17:49:19 =====
+Package         | Local Version   | PyPI Version    | Status
+----------------------------------------------------------------------
+moviepy         | 2.2.1           | 2.2.1           | Up to date
+gTTS            | 2.5.4           | 2.5.4           | Up to date
+pydub           | 0.25.1          | 0.25.1          | Up to date
+requests        | 2.32.4          | 2.32.4          | Up to date
+feedparser      | 6.0.11          | 6.0.11          | Up to date
+pyvis           | 0.3.2           | 0.3.2           | Up to date
+matplotlib      | 3.10.5          | 3.10.5          | Up to date
+networkx        | 3.5             | 3.5             | Up to date
+Log saved to upgrade_log.csv
+===== Script finished at: 2025-08-09 17:49:27 =====
+

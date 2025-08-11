@@ -30,28 +30,28 @@ def kenali_karakter_sahabat(nama):
         "nabi musa": {
             "nama": "Nabi Musa عليه السلام",
             "arab": "النبي موسى عليه السلام",
-            "latin": "Nabiyy Mūsā ‘alayhis-salām",
+            "latin": "Nabiyy Mūsā 'alayhis-salām",
             "peran": "Penerima Taurat, penyelamat Bani Israil",
             "kutipan": "Wahai Tuhanku, lapangkanlah dadaku."
         },
         "nabi isa": {
             "nama": "Nabi Isa عليه السلام",
             "arab": "النبي عيسى عليه السلام",
-            "latin": "Nabiyy ‘Īsā ‘alayhis-salām",
+            "latin": "Nabiyy 'Īsā 'alayhis-salām",
             "peran": "Pembawa Injil, diangkat ke langit",
             "kutipan": "Aku adalah hamba Allah."
         },
         "nabi ibrahim": {
             "nama": "Nabi Ibrahim عليه السلام",
             "arab": "النبي إبراهيم عليه السلام",
-            "latin": "Nabiyy Ibrāhīm ‘alayhis-salām",
+            "latin": "Nabiyy Ibrāhīm 'alayhis-salām",
             "peran": "Bapak para nabi, membangun Ka'bah",
             "kutipan": "Tuhanku yang menghidupkan dan mematikan."
         },
         "nabi adam": {
             "nama": "Nabi Adam عليه السلام",
             "arab": "النبي آدم عليه السلام",
-            "latin": "Nabiyy Ādam ‘alayhis-salām",
+            "latin": "Nabiyy Ādam 'alayhis-salām",
             "peran": "Manusia pertama dan nabi pertama",
             "kutipan": "Kami telah menzalimi diri kami sendiri."
         }

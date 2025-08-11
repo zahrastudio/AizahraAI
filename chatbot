@@ -1,0 +1,43 @@
+# main.py
+
+from chatbot import run_chat
+from rich import print
+from modules.tts import baca_suara  # Jika ingin disuarakan juga
+
+def ucapan_awal():
+    arab = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+    latin = "Bismillāhir-raḥmānir-raḥīm"
+    arti = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang"
+    print("📿 [bold green]Ucapan Pembuka:[/]")
+    print(f"🕋 Arab   : {arab}")
+    print(f"🔡 Latin  : {latin}")
+    print(f"🇮🇩 Arti   : {arti}\n")
+    baca_suara(arab, latin, arti)
+
+def ucapan_penutup():
+    arab = "وَٱللَّهُ أَعْلَمُ بِٱلصَّوَابِ"
+    latin = "Wallāhu a‘lamu bis-sawāb"
+    arti = "Dan Allah-lah yang Maha Mengetahui kebenaran yang sebenarnya."
+    print("\n📿 [bold red]Ucapan Penutup:[/]")
+    print(f"🕋 Arab   : {arab}")
+    print(f"🔡 Latin  : {latin}")
+    print(f"🇮🇩 Arti   : {arti}\n")
+    baca_suara(arab, latin, arti)
+
+def main():
+    print("🤖 [bold magenta]AizahraAI Siap Membantu[/]")
+    print("Ketik [bold]exit[/] untuk keluar.\n")
+    print("[bold yellow]Dengan hormat, mari kita mulai...[/]\n")
+    
+    ucapan_awal()
+    run_chat()
+    ucapan_penutup()
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n👋 Sampai jumpa! (dihentikan pakai Ctrl+C)")
+    except Exception as e:
+        print(f"⚠️ Terjadi kesalahan: {e}")
+

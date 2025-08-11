@@ -1,0 +1,18 @@
+# open_map.py
+# import os  # FIXED: unknown import commented out
+# import sys  # FIXED: unknown import commented out
+
+def open_map(lat, lon):
+    url = f"https://www.google.com/maps/@{lat},{lon},15z"
+    # termux-open-url akan membuka URL di browser default Android
+    os.system(f'termux-open-url "{url}"')
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python open_map.py <latitude> <longitude>")
+        sys.exit(1)
+
+    lat = sys.argv[1]
+    lon = sys.argv[2]
+
+    open_map(lat, lon)

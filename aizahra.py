@@ -1,3 +1,4 @@
+
 import requests
 import os
 import json
@@ -35,7 +36,7 @@ def tampilkan_ayat(surat, ayat):
         teks_indo = data['idn']
         audio = data['audio']
 
-        print("\n📖 AYAT AL-QUR’AN")
+        print("\n📖 AYAT AL-QUR'AN")
         print("📖 Lafaz Arab       :", teks_arab)
         print("📖 Transliterasi    :", teks_latin)
         print("📖 Terjemahan ID    :", teks_indo)
@@ -101,7 +102,7 @@ while True:
     user_input = input("\n🧕 Kamu: ")
     if user_input.lower() in ["exit", "keluar", "quit"]:
         print("📖 وَٱللَّهُ أَعْلَمُ بِٱلصَّوَابِ")
-        print("📖 Wallāhu a‘lamu biṣ-ṣawāb")
+        print("📖 Wallāhu a'lamu biṣ-ṣawāb")
         print("📖 Dan Allah-lah yang lebih mengetahui kebenaran yang sebenar-benarnya 🌸")
         break
 
@@ -109,6 +110,6 @@ while True:
         jawaban = tanya_aizahra(user_input)
         print(f"\n🤖 Aizahra: {jawaban.strip()}")
         print("📖 وَٱللَّهُ أَعْلَمُ بِٱلصَّوَابِ")
-        print("📖 Wallāhu a‘lamu biṣ-ṣawāb")
+        print("📖 Wallāhu a'lamu biṣ-ṣawāb")
         print("📖 Dan Allah-lah yang lebih mengetahui kebenaran yang sebenar-benarnya 🌸")
 

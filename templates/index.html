@@ -1,0 +1,31 @@
+htmll<!DOCTYPE html>
+<html>
+<head>
+    <title>AIzahraAI Web GUI</title>
+</head>
+<body>
+    <h1>🌍 Lokasi: {{ city }}</h1>
+    <p>🕒 Waktu saat ini: {{ now }}</p>
+    <p>📅 Hijriah: {{ hijri }}</p>
+
+    <h2>🕌 Jadwal Sholat:</h2>
+    <ul>
+        <li>Subuh: {{ timings['Fajr'] }}</li>
+        <li>Terbit: {{ timings['Sunrise'] }}</li>
+        <li>Dzuhur: {{ timings['Dhuhr'] }}</li>
+        <li>Ashar: {{ timings['Asr'] }}</li>
+        <li>Maghrib: {{ timings['Maghrib'] }}</li>
+        <li>Isya: {{ timings['Isha'] }}</li>
+    </ul>
+
+    <h3>🔊 Narasi:</h3>
+<audio controls autoplay>
+    <source src="{{ url_for('static', filename='audio/narasi.mp3') }}" type="audio/mpeg">
+    Browser Anda tidak mendukung audio.
+</audio>
+
+    <form action="/refresh" method="post">
+        <button type="submit">🔄 Segarkan</button>
+    </form>
+</body>
+</html>

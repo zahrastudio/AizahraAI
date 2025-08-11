@@ -1,0 +1,58 @@
+# import os  # FIXED: unknown import commented out
+# import py_compile  # FIXED: unknown import commented out
+
+REPLACEMENTS = {
+    "-": "-",   # em dash jadi minus biasa
+    "-": "-",   # en dash jadi minus biasa
+    """: "\"",  # kutip kiri jadi kutip biasa
+    """: "\"",  # kutip kanan jadi kutip biasa
+    "'": "'",   # kutip satu kiri jadi biasa
+    "'": "'",   # kutip satu kanan jadi biasa
+}
+
+def fix_file(path):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        fixed_content = content
+        for bad_char, good_char in REPLACEMENTS.items():
+            fixed_content = fixed_content.replace(bad_char, good_char)
+        if fixed_content != content:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(fixed_content)
+            print(f"[FIXED] {path}")
+            return True
+        else:
+            print(f"[OK] {path}")
+            return False
+    except Exception as e:
+        print(f"[ERROR] Could not fix {path}: {e}")
+        return False
+
+def check_and_fix_all_py(root_dir):
+    errors = []
+    fixes = 0
+    for subdir, _, files in os.walk(root_dir):
+        for file in files:
+            if file.endswith(".py"):
+                path = os.path.join(subdir, file)
+                try:
+                    py_compile.compile(path, doraise=True)
+                    print(f"[OK] {path}")
+                except py_compile.PyCompileError as e:
+                    print(f"[ERROR] {path}: {e.msg}")
+                    errors.append(path)
+
+    # Coba perbaiki file yang error
+    for file in errors:
+        if fix_file(file):
+            fixes += 1
+
+    # Setelah fix, cek ulang
+    if fixes > 0:
+        print("\n[INFO] Rechecking files after fixes...\n")
+        check_and_fix_all_py(root_dir)  # rekursif sampai fix habis
+
+if __name__ == "__main__":
+    root_folder = "./"  # sesuaikan dengan folder kerja kamu
+    check_and_fix_all_py(root_folder)

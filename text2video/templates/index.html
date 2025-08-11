@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Text to Video Generator</title>
+</head>
+<body>
+  <h1>Text to Video Generator</h1>
+
+  {% if error %}
+    <div style="color:red">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST">
+    <div>
+      <label>Teks narasi (Bahasa Indonesia):</label><br>
+      <textarea name="text" rows="6" cols="70" placeholder="Tulis teks di sini..."></textarea>
+    </div>
+
+    <div>
+      <label>Kata kunci gambar Unsplash (opsional):</label><br>
+      <input type="text" name="keyword" placeholder="contoh: sunset beach">
+    </div>
+
+    <div>
+      <label>Nama tempat untuk citra satelit (opsional):</label><br>
+      <input type="text" name="place" placeholder="contoh: Gaza, Jakarta">
+    </div>
+
+    <div style="margin-top:10px">
+      <button type="submit">Generate Video</button>
+    </div>
+  </form>
+
+  {% if result %}
+    <h2>Hasil</h2>
+    <video width="720" controls>
+      <source src="{{ result.preview }}" type="video/mp4">
+      Browser Anda tidak mendukung video tag.
+    </video>
+    <p><a href="{{ result.download }}">Download video</a></p>
+  {% endif %}
+</body>
+</html>

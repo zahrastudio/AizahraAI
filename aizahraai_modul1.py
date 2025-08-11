@@ -1,0 +1,103 @@
+# import os  # FIXED: unknown import commented out
+import json
+# import openai  # FIXED: unknown import commented out
+
+# MASUKKAN API KEY OPENAI KAMU DISINI
+OPENAI_API_KEY = "ISI_API_KEY_KAMU"
+openai.api_key = OPENAI_API_KEY
+
+# Load database Quran dari file JSON
+def load_quran_data(filepath="quran_ayat.json"):
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print("Gagal memuat data Quran:", e)
+        return {}
+
+# Fungsi untuk tampilkan lafaz Bismillah
+def lafaz_bismillah():
+    return (
+        "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ\n"
+        "Bismillahirrahmanirrahim\n"
+        "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang\n"
+    )
+
+# Fungsi untuk tampilkan lafaz penutup Wallahu A'lam bissawab
+def lafaz_wallahu():
+    return "وَاللَّهُ أَعْلَمُ بِالصَّوَابِ\nWallahu A'lam bissawab"
+
+# Fungsi chat AI ke OpenAI
+def chat_gpt(prompt):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Error OpenAI API: {e}"
+
+# Fungsi cari ayat Quran
+def cari_ayat(quran_data, surah, ayat):
+    key = f"{surah}:{ayat}"
+    return quran_data.get(key, None)
+
+# Fungsi putar audio mp3 via Termux media player
+def putar_audio(surah, ayat):
+    filename = f"quran_{surah}_{ayat}_arab.mp3"
+    filepath = os.path.expanduser(f"~/AizahraAI/{filename}")
+    if os.path.isfile(filepath):
+        print(f"Memutar audio: {filename}")
+        os.system(f'termux-media-player play "{filepath}"')
+    else:
+        print(f"File audio tidak ditemukan: {filename}")
+
+def main():
+    print(lafaz_bismillah())
+
+    quran_data = load_quran_data()
+
+    while True:
+        print("\nMenu:")
+        print("1. Chat dengan AizahraAI")
+        print("2. Cari ayat Quran")
+        print("3. Putar audio ayat Quran")
+        print("4. Keluar")
+
+        pilihan = input("Masukkan pilihan (1-4): ").strip()
+
+        if pilihan == "1":
+            user_input = input("Ketik pesan untuk AizahraAI (atau ketik 'exit' untuk kembali): ")
+            if user_input.lower() == "exit":
+                continue
+            jawaban = chat_gpt(user_input)
+            print("AizahraAI:", jawaban)
+
+        elif pilihan == "2":
+            surah = input("Nomor surah: ").strip()
+            ayat = input("Nomor ayat: ").strip()
+            ayat_data = cari_ayat(quran_data, surah, ayat)
+            if ayat_data:
+                print("\n--- Ayat Quran ---")
+                print("Arab    :", ayat_data.get("arab", "-"))
+                print("Latin   :", ayat_data.get("latin", "-"))
+                print("Terjemah:", ayat_data.get("terjemah", "-"))
+            else:
+                print("Ayat tidak ditemukan.")
+
+        elif pilihan == "3":
+            surah = input("Nomor surah: ").strip()
+            ayat = input("Nomor ayat: ").strip()
+            putar_audio(surah, ayat)
+
+        elif pilihan == "4":
+            print(lafaz_wallahu())
+            print("Terima kasih telah menggunakan AizahraAI!")
+            break
+
+        else:
+            print("Pilihan tidak valid, silakan coba lagi.")
+
+if __name__ == "__main__":
+    main()

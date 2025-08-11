@@ -1,0 +1,20 @@
+from moviepy.editor import TextClip, CompositeVideoClip
+
+def buat_video_teks(teks, durasi=10, filename="output.mp4"):
+    # Membuat klip teks bergerak dari kiri ke kanan
+    teks_clip = (TextClip(teks, fontsize=50, color='white', font='Arial-Bold')
+                 .set_duration(durasi)
+                 .set_position(lambda t: ('center', 50 + 30*t))
+                 .fadein(1)
+                 .fadeout(1))
+
+    # Background hitam
+    video = CompositeVideoClip([teks_clip], size=(640, 480), bg_color='black')
+
+    # Simpan file video
+    video.write_videofile(filename, fps=24)
+
+if __name__ == "__main__":
+    teks = "Assalamu'alaikum, ini adalah video teks berjalan dari AizahraAI di Termux."
+    buat_video_teks(teks)
+

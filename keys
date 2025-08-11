@@ -1,0 +1,12 @@
+# export keys (Termux)
+export OPENAI_API_KEY="paste_here_only_locally"
+export YT_CREDENTIALS="/data/data/com.termux/files/home/yt_credentials.json"
+
+# jalankan backend
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# contoh ffmpeg render (gabungkan images + audio)
+ffmpeg -r 12 -i frames/frame_%03d.png -i audio.mp3 -c:v libx264 -c:a aac -pix_fmt yuv420p -shortest output.mp4
+
+
+

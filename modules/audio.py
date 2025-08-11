@@ -1,31 +1,20 @@
-from gtts import gTTS
 import os
-import arabic_reshaper
-from bidi.algorithm import get_display
+import shutil
 
-def format_arabic(text):
-    reshaped = arabic_reshaper.reshape(text)
-    return get_display(reshaped)
-def tts_play(teks, lang='id', filename='./temp.mp3'):
-    try:
-        tts = gTTS(text=teks, lang=lang)
-        tts.save(filename)
-        os.system(f'termux-media-player play {filename}')
-    except Exception as e:
-        print("Audio error:", e)
+AUDIO_FOLDER = os.path.join(os.getcwd(), "audio")
 
+def ensure_audio_folder():
+    if not os.path.exists(AUDIO_FOLDER):
+        os.makedirs(AUDIO_FOLDER)
 
-# modules/audio.py
-
-from gtts import gTTS
-import os
-
-def tts_gtts(teks, lang='id', filename="output.mp3"):
-    try:
-        tts = gTTS(text=teks, lang=lang)
-        tts.save(filename)
-        os.system(f"termux-media-player play {filename}")
-        print(f"Now Playing (gTTS): {filename}")
-    except Exception as e:
-        print(f"TTS error: {e}")
+def cleanup_audio_folder():
+    ensure_audio_folder()
+    for filename in os.listdir(AUDIO_FOLDER):
+        file_path = os.path.join(AUDIO_FOLDER, filename)
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"⚠️ Gagal menghapus {file_path}: {e}")
+    print("🧹 Folder audio dibersihkan.")
 

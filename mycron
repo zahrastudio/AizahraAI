@@ -1,0 +1,5 @@
+# Jalankan script update dan generate video setiap hari jam 02:00 WIB
+0 2 * * * cd /data/data/com.termux/files/home/AizahraAI && ./venv/bin/python update_cerita.py >> cron_log.txt 2>&1 && ./venv/bin/python generate_video.py >> cron_log.txt 2>&1
+
+# Jalankan script khusus setiap Sabtu jam 08:00 WIB (misal update khusus mingguan)
+0 8 * * 6 cd /data/data/com.termux/files/home/AizahraAI && ./venv/bin/python update_cerita.py --weekly >> cron_log.txt 2>&1 && ./venv/bin/python generate_video.py >> cron_log.txt 2>&1

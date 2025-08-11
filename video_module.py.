@@ -1,0 +1,48 @@
+import requests
+import time
+import random
+
+class VideoGenerator:
+    def __init__(self, api_keys):
+        self.api_keys = [key for key in api_keys if key]
+
+    def generate_video(self, prompt, max_retries=5):
+        tried_keys = set()
+        attempts = 0
+        while attempts < max_retries:
+            api_key = random.choice(self.api_keys)
+            if api_key in tried_keys:
+                attempts += 1
+                continue
+            tried_keys.add(api_key)
+
+            url = "https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-generate-preview:generateVideos"
+            headers = {
+                "Content-Type": "application/json",
+                "X-goog-api-key": api_key,
+            }
+            payload = {
+                "prompt": prompt
+            }
+
+            try:
+                response = requests.post(url, headers=headers, json=payload)
+                if response.status_code == 200:
+                    data = response.json()
+                    # Proses data video hasil generate di sini
+                    print("Video berhasil digenerate!")
+                    return data
+                else:
+                    print(f"Error {response.status_code} dengan key {api_key[:8]}...: {response.text}")
+            except Exception as e:
+                print(f"Exception dengan key {api_key[:8]}...: {e}")
+
+            attempts += 1
+            time.sleep(2)
+
+        raise Exception("Gagal generate video setelah mencoba semua API key.")
+
+# Contoh pemakaian:
+# vg = VideoGenerator(["API_KEY_1", "API_KEY_2"])
+# vg.generate_video("A majestic lion in the savannah")
+
