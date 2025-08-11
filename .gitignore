@@ -205,3 +205,16 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Ignore video/audio generated outputs
+text2video/static/output/
+*.mp4
+*.mp3
+*.zip
+*.bak
+
+env.
+
+aizahraai_chat_manager.py
+api_keys.json
+api_keys.py
