@@ -1,0 +1,9 @@
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.post("/generate_video/")
+async def generate_video(text: str):
+    # Proses teks menjadi video
+    return {"video_url": "http://example.com/output.mp4"}
+

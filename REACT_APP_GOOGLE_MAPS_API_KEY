@@ -1,0 +1,124 @@
+import React, { useEffect, useState } from 'react';
+
+function loadScript(url) {
+  return new Promise((resolve) => {
+    const existingScript = document.querySelector(`script[src="${url}"]`);
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = url;
+      script.async = true;
+      script.onload = () => resolve(true);
+      document.body.appendChild(script);
+    } else {
+      resolve(true);
+    }
+  });
+}
+
+function App() {
+  const [alquranData, setAlquranData] = useState(null);
+  const [chatPrompt, setChatPrompt] = useState('');
+  const [chatResponse, setChatResponse] = useState('');
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Fetch data Al-Qur’an dari backend
+  useEffect(() => {
+    fetch('http://localhost:5000/api/alquran')
+      .then(res => res.json())
+      .then(data => setAlquranData(data))
+      .catch(err => console.error('Gagal fetch Al-Qur’an:', err));
+  }, []);
+
+  // Load Google Maps script and init map
+  useEffect(() => {
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      console.error('Google Maps API key is missing in .env');
+      return;
+    }
+
+    loadScript(`https://maps.googleapis.com/maps/api/js?key=${apiKey}`)
+      .then(() => {
+        // Inisialisasi map setelah script dimuat
+        const map = new window.google.maps.Map(document.getElementById('map'), {
+          center: { lat: -6.200000, lng: 106.816666 }, // Jakarta
+          zoom: 10,
+        });
+
+        new window.google.maps.Marker({
+          position: { lat: -6.200000, lng: 106.816666 },
+          map,
+          title: 'Marker di Jakarta',
+        });
+
+        setMapLoaded(true);
+      });
+  }, []);
+
+  // Submit chat prompt ke backend ChatGPT
+  const handleChatSubmit = async (e) => {
+    e.preventDefault();
+    setChatResponse('Loading...');
+
+    try {
+      const res = await fetch('http://localhost:5000/api/chatgpt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: chatPrompt }),
+      });
+      const json = await res.json();
+      if (json.result) {
+        setChatResponse(json.result);
+      } else {
+        setChatResponse('Gagal mendapatkan respons dari server');
+      }
+    } catch (error) {
+      setChatResponse('Error: ' + error.message);
+    }
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>Demo Integrasi Al-Qur’an, ChatGPT, dan Google Maps</h1>
+
+      <section>
+        <h2>Data Al-Qur’an (Sample)</h2>
+        {alquranData ? (
+          <pre style={{ maxHeight: 200, overflowY: 'auto', background: '#eee', padding: 10 }}>
+            {JSON.stringify(alquranData, null, 2)}
+          </pre>
+        ) : (
+          <p>Loading data Al-Qur’an...</p>
+        )}
+      </section>
+
+      <section style={{ marginTop: 30 }}>
+        <h2>Chat dengan ChatGPT</h2>
+        <form onSubmit={handleChatSubmit}>
+          <input
+            type="text"
+            value={chatPrompt}
+            onChange={(e) => setChatPrompt(e.target.value)}
+            placeholder="Tulis prompt di sini..."
+            style={{ width: '70%', padding: 8 }}
+            required
+          />
+          <button type="submit" style={{ padding: '8px 16px', marginLeft: 8 }}>
+            Kirim
+          </button>
+        </form>
+        <div style={{ marginTop: 10, whiteSpace: 'pre-wrap' }}>{chatResponse}</div>
+      </section>
+
+      <section style={{ marginTop: 30 }}>
+        <h2>Google Maps</h2>
+        <div id="map" style={{ width: '100%', height: '400px', border: '1px solid #ccc' }}>
+          {!mapLoaded && <p>Loading Google Maps...</p>}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;
+

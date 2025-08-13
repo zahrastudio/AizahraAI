@@ -1,0 +1,5 @@
+from gtts import gTTS
+
+tts = gTTS('Selamat datang di tutorial AI!', lang='id')
+tts.save('output.mp3')
+

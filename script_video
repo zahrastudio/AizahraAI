@@ -1,0 +1,4 @@
+ffmpeg -i input.mp4 -vf "drawtext=text='Teks Subtitle':x=10:y=10:fontsize=24:fontcolor=white" output.mp4
+
+
+

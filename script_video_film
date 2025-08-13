@@ -1,0 +1,33 @@
+from gtts import gTTS
+from moviepy.editor import TextClip, CompositeVideoClip, AudioFileClip
+
+# Teks yang akan dinarasikan dan ditampilkan
+teks_arab = "بسم الله الرحمن الرحيم"
+teks_terjemah = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang"
+narasi = teks_terjemah  # Bisa ganti ke teks lain
+
+# Buat audio narasi pakai gTTS (bahasa Indonesia)
+tts = gTTS(text=narasi, lang='id')
+tts.save("narasi.mp3")
+
+# Durasi audio (pakai moviepy)
+audio_clip = AudioFileClip("narasi.mp3")
+duration = audio_clip.duration
+
+# Buat video background hitam
+from moviepy.editor import ColorClip
+video_bg = ColorClip(size=(1280,720), color=(0,0,0), duration=duration)
+
+# Buat teks Arab dan terjemahan sebagai clip teks
+arab_clip = TextClip(teks_arab, fontsize=60, color='white', font='Amiri-Regular', method='caption', size=(1200,100)).set_position(('center', 200)).set_duration(duration)
+terjemah_clip = TextClip(teks_terjemah, fontsize=40, color='white', font='Arial', method='caption', size=(1200,100)).set_position(('center', 300)).set_duration(duration)
+
+# Gabungkan video + teks
+final_clip = CompositeVideoClip([video_bg, arab_clip, terjemah_clip])
+
+# Pasang audio
+final_clip = final_clip.set_audio(audio_clip)
+
+# Export video
+final_clip.write_videofile("output_video.mp4", fps=24)
+

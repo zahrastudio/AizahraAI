@@ -1,0 +1,304 @@
+#!/usr/bin/env python3
+import os
+import subprocess
+import shutil
+import socket
+
+ROOT = os.getcwd()
+
+def write_file(path, content):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+def run_shell(cmd_list, cwd=None):
+    try:
+        p = subprocess.run(cmd_list, cwd=cwd)
+        return p.returncode == 0
+    except Exception as e:
+        print("Error menjalankan:", cmd_list, e)
+        return False
+
+def check_ffmpeg():
+    if shutil.which("ffmpeg"):
+        print("✅ ffmpeg sudah terpasang.")
+        return True
+    print("⚠ ffmpeg belum ada. Menginstall...")
+    run_shell(["pkg", "install", "-y", "ffmpeg"])
+    return shutil.which("ffmpeg") is not None
+
+def notify_termux(title, message):
+    if shutil.which("termux-notification"):
+        run_shell(["termux-notification", "--title", title, "--content", message])
+    else:
+        print(f"📢 {title}: {message}")
+
+def install_apk(apk_path):
+    if shutil.which("am"):
+        run_shell(["am", "start", "-a", "android.intent.action.VIEW",
+                   "-d", f"file://{apk_path}", "-t", "application/vnd.android.package-archive"])
+    else:
+        print(f"📦 APK tersedia di: {apk_path}")
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # coba connect ke IP publik dummy
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = "127.0.0.1"
+    finally:
+        s.close()
+    return ip
+
+# Templates backend
+BACKEND_MAIN = """\
+from flask import Flask, request, jsonify, send_file
+import os
+from text2video import generate_script, create_video_from_text
+
+app = Flask(__name__)
+
+@app.route("/generate-script", methods=["POST"])
+def generate_script_endpoint():
+    data = request.get_json() or {{}}
+    prompt = data.get("prompt") or ""
+    if not prompt:
+        return jsonify({{"error": "missing prompt"}}), 400
+    script = generate_script(prompt)
+    return jsonify({{"script": script}})
+
+@app.route("/generate-video", methods=["POST"])
+def generate_video_endpoint():
+    data = request.get_json() or {{}}
+    text = data.get("text") or ""
+    if not text:
+        return jsonify({{"error": "missing text"}}), 400
+    out = create_video_from_text(text, output="output.mp4")
+    return send_file(out, mimetype="video/mp4", as_attachment=True)
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 7860))
+    app.run(host="0.0.0.0", port=port)
+"""
+
+BACKEND_TEXT2VIDEO = """\
+import os
+import tempfile
+from gtts import gTTS
+from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips
+
+def generate_script(prompt: str) -> str:
+    key = os.getenv("OPENAI_API_KEY")
+    if not key:
+        return "Naskah (fallback): " + prompt
+    try:
+        from openai import OpenAI
+        client = OpenAI()
+        resp = client.chat.completions.create(model="gpt-4o-mini", messages=[{{"role":"user","content":prompt}}])
+        return resp.choices[0].message.content
+    except Exception as e:
+        print("Warning: OpenAI call failed:", e)
+        return "Naskah (fallback): " + prompt
+
+def generate_narration(text: str, filename: str = "narration.mp3") -> str:
+    tts = gTTS(text=text, lang="id")
+    tts.save(filename)
+    return filename
+
+def create_slides_from_text(text: str, width=1280, height=720, fontsize=40, duration_per_slide=5):
+    paras = [p.strip() for p in text.split("\\n\\n") if p.strip()]
+    if not paras:
+        paras = [text]
+    clips = []
+    from PIL import Image, ImageDraw, ImageFont
+    import textwrap as _tw
+    for p in paras:
+        img = Image.new("RGB", (width, height), color=(0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        try:
+            font = ImageFont.truetype("DejaVuSans.ttf", fontsize)
+        except:
+            font = ImageFont.load_default()
+        wrapped = _tw.fill(p, width=40)
+        draw.multiline_text((40, 40), wrapped, font=font, fill=(255,255,255))
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+        img.save(tmp.name)
+        clips.append(ImageClip(tmp.name).set_duration(duration_per_slide))
+    return clips
+
+def create_video_from_text(text: str, output: str = "output.mp4") -> str:
+    audio_path = generate_narration(text, filename="narration.mp3")
+    audio_clip = AudioFileClip(audio_path)
+    slides = create_slides_from_text(text, duration_per_slide=max(1, int(audio_clip.duration / max(1, len(text.split('\\n\\n'))))))
+    video = concatenate_videoclips(slides, method="compose")
+    video = video.set_audio(audio_clip).set_duration(audio_clip.duration)
+    video.write_videofile(output, fps=24, codec='libx264', audio_codec='aac')
+    return output
+"""
+
+BACKEND_REQS = """\
+flask
+openai
+gTTS
+moviepy
+Pillow
+requests
+"""
+
+START_BACKEND_SH = """\
+#!/usr/bin/env bash
+set -e
+BASEDIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$BASEDIR"
+pip install --prefer-binary -r requirements.txt
+python3 main.py
+"""
+
+# Frontend with dynamic backend IP in request URL
+def frontend_main_py(ip):
+    return f"""\
+from kivymd.app import MDApp
+from kivymd.uix.screen import MDScreen
+from kivymd.uix.textfield import MDTextField
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.label import MDLabel
+import requests
+
+class MainScreen(MDScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.prompt_input = MDTextField(hint_text="Masukkan prompt", size_hint=(0.8, None), height=50, pos_hint={{"center_x": 0.5, "center_y": 0.7}})
+        self.add_widget(self.prompt_input)
+
+        self.generate_btn = MDRaisedButton(text="Buat Video", pos_hint={{"center_x": 0.5, "center_y": 0.5}}, on_release=self.generate_video)
+        self.add_widget(self.generate_btn)
+
+        self.status = MDLabel(text="", halign="center", pos_hint={{"center_x": 0.5, "center_y": 0.3}})
+        self.add_widget(self.status)
+
+    def generate_video(self, *args):
+        prompt = self.prompt_input.text
+        if not prompt.strip():
+            self.status.text = "Prompt kosong!"
+            return
+        try:
+            r = requests.post("http://{ip}:7860/generate-video", json={{"text": prompt}})
+            if r.status_code == 200:
+                with open("output.mp4", "wb") as f:
+                    f.write(r.content)
+                self.status.text = "Video berhasil dibuat!"
+            else:
+                self.status.text = f"Error: {{r.text}}"
+        except Exception as e:
+            self.status.text = f"Gagal: {{e}}"
+
+class MyApp(MDApp):
+    def build(self):
+        return MainScreen()
+
+if __name__ == "__main__":
+    MyApp().run()
+"""
+
+BUILD_APK_SH = """\
+#!/usr/bin/env bash
+set -e
+BASEDIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$BASEDIR"
+
+# Install buildozer jika belum ada
+if ! command -v buildozer &> /dev/null; then
+    pip install --upgrade pip
+    pip install buildozer cython
+    pkg install -y python3 clang libffi libffi-dev git zlib zlib-dev
+fi
+
+# Inisialisasi buildozer jika belum
+if [ ! -f buildozer.spec ]; then
+    buildozer init
+    sed -i 's/package.name = .*/package.name = gpt_text2video/' buildozer.spec
+    sed -i 's/package.domain = .*/package.domain = org.bot/' buildozer.spec
+
+    # Tambahkan requirements python dan sumber untuk KivyMD
+    sed -i '/requirements = /c\\
+requirements = python3,kivy,kivymd,requests' buildozer.spec
+fi
+
+# Build APK
+buildozer -v android debug
+APK_PATH=$(ls bin/*.apk | head -n 1)
+cp "$APK_PATH" "$BASEDIR/../../gpt_text2video.apk"
+echo "✅ APK berhasil dibuat: $BASEDIR/../../gpt_text2video.apk"
+"""
+
+def create_project(name):
+    base = os.path.join(ROOT, name)
+    backend_dir = os.path.join(base, "backend")
+    frontend_dir = os.path.join(base, "frontend")
+
+    os.makedirs(backend_dir, exist_ok=True)
+    os.makedirs(frontend_dir, exist_ok=True)
+
+    # tulis backend file
+    write_file(os.path.join(backend_dir, "main.py"), BACKEND_MAIN)
+    write_file(os.path.join(backend_dir, "text2video.py"), BACKEND_TEXT2VIDEO)
+    write_file(os.path.join(backend_dir, "requirements.txt"), BACKEND_REQS)
+    write_file(os.path.join(backend_dir, "start-backend.sh"), START_BACKEND_SH)
+    os.chmod(os.path.join(backend_dir, "start-backend.sh"), 0o755)
+
+    # dapatkan IP lokal untuk frontend.py
+    ip = get_local_ip()
+    print(f"ℹ️ Detected local IP: {ip}")
+
+    # tulis frontend file dengan IP backend yang benar
+    write_file(os.path.join(frontend_dir, "main.py"), frontend_main_py(ip))
+
+    # tulis script build apk
+    build_sh_path = os.path.join(frontend_dir, "build-apk.sh")
+    write_file(build_sh_path, BUILD_APK_SH)
+    os.chmod(build_sh_path, 0o755)
+
+    # cek ffmpeg
+    check_ffmpeg()
+
+    # install backend dependencies global (tanpa venv)
+    print("📦 Menginstall dependency Python backend (prefer-binary)...")
+    subprocess.call([
+        "pip", "install", "--prefer-binary", "-r",
+        os.path.join(backend_dir, "requirements.txt")
+    ])
+    print("✅ Semua dependency backend terpasang.")
+
+    # build apk frontend
+    print("📦 Membangun APK frontend...")
+    subprocess.call(["bash", "build-apk.sh"], cwd=frontend_dir)
+
+    # pindahkan apk ke folder root Termux
+    apk_src = os.path.join(ROOT, name, "frontend", "bin")
+    apk_files = [f for f in os.listdir(apk_src) if f.endswith(".apk")]
+    if apk_files:
+        apk_path = os.path.join(apk_src, apk_files[0])
+        apk_dest = os.path.join(ROOT, "gpt_text2video.apk")
+        shutil.copy(apk_path, apk_dest)
+        print(f"✅ APK disalin ke: {apk_dest}")
+        notify_termux("Build APK Selesai", f"APK tersedia di {apk_dest}")
+        install_apk(apk_dest)
+    else:
+        print("❌ APK tidak ditemukan setelah build.")
+
+def run_backend(name):
+    backend_dir = os.path.join(ROOT, name, "backend")
+    start_script = os.path.join(backend_dir, "start-backend.sh")
+    if not os.path.exists(start_script):
+        print("❌ start-backend.sh tidak ditemukan.")
+        return
+    print("🚀 Menjalankan backend Flask...")
+    subprocess.call(["bash", start_script], cwd=backend_dir)
+
+if __name__ == "__main__":
+    project_name = "gpt_text2video"
+    create_project(project_name)
+    run_backend(project_name)
+

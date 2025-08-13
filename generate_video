@@ -1,0 +1,54 @@
+from openai import OpenAI
+import subprocess
+from gtts import gTTS
+
+client = OpenAI()
+
+def get_keywords(prompt_text: str) -> str:
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt_text}
+        ],
+        max_tokens=50,
+        temperature=0.7,
+    )
+    return response.choices[0].message.content.strip()
+
+def generate_video_from_text(prompt_text: str, output_video="output.mp4"):
+    keywords = get_keywords(prompt_text)
+    # Untuk demo, kita pakai keywords sebagai list kata, misal pisah dengan koma
+    keyword_list = [k.strip() for k in keywords.split(",") if k.strip()]
+
+    # Download gambar dengan keyword (gunakan Unsplash API sesuai API key-mu)
+    image_files = []
+    for i, keyword in enumerate(keyword_list):
+        # Fungsi download_image harus kamu buat, misal pakai requests ke Unsplash
+        filename = download_image(keyword, i)
+        if filename:
+            image_files.append(filename)
+
+    # Buat audio dari teks
+    audio_filename = "narration.mp3"
+    tts = gTTS(text=prompt_text, lang='id')
+    tts.save(audio_filename)
+
+    # Buat daftar gambar untuk ffmpeg
+    image_list_file = "image_list.txt"
+    with open(image_list_file, "w") as f:
+        for image in image_files:
+            f.write(f"file '{image}'\n")
+            f.write("duration 5\n")  # 5 detik per gambar
+
+    # Gabungkan gambar dan audio ke video
+    ffmpeg_command = [
+        "ffmpeg", "-f", "concat", "-safe", "0", "-i", image_list_file,
+        "-i", audio_filename, "-c:v", "libx264", "-c:a", "aac", "-shortest", output_video
+    ]
+    subprocess.run(ffmpeg_command, check=True)
+
+    return output_video
+
+	
+

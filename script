@@ -1,0 +1,11 @@
+import openai
+
+openai.api_key = '***REMOVED***proj-uRCupjDZ92B1dzCdD88oC3PnbWdVsfE5TOYyD48zptmYt1Z_eC3eU1WVRkwmdjz2fgOdujMZFQT3BlbkFJld_dvyzsUztPjbXq4GPsNtchwhY0li3sjlwDzIbdPW9Yu9mk99BfaA8url0vbyikhR9kUiuLwA
+
+response = openai.Completion.create(
+  engine="text-davinci-003",
+  prompt="Tulis skrip video tentang teknologi AI.",
+  max_tokens=150
+)
+
+print(response.choices[0].text.strip())
