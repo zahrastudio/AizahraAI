@@ -1,0 +1,90 @@
+name: Build & Package Termux App
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Frontend dependencies
+        run: |
+          cd chatgpt-multifunction-frontend
+          npm install
+        shell: bash
+
+      - name: Build Frontend
+        run: |
+          cd chatgpt-multifunction-frontend
+          npm run build
+        shell: bash
+
+      - name: Create Build Folder
+        run: |
+          mkdir -p dist
+          cp -r backend dist/
+          cp -r chatgpt-multifunction-frontend/build dist/frontend
+          cp -r chatgpt-multifunction-web dist/web
+          cp aizahraai_chat.py main.py dist/
+          cp -r aiZahraVerse dist/
+          cp -r *.mp3 *.json *.jpg dist/ || true
+        shell: bash
+
+      - name: Create ZIP package
+        run: |
+          zip -r dist/termux_app.zip dist/*
+        shell: bash
+
+      - name: Create Linux installer script
+        run: |
+          cat << 'EOF' > dist/install_linux.sh
+          #!/bin/bash
+          echo "Menyiapkan environment..."
+          python3 -m pip install --upgrade pip
+          pip3 install -r requirements.txt
+          echo "Install frontend..."
+          cd chatgpt-multifunction-frontend && npm install && npm run build
+          echo "Selesai, jalankan main.py untuk memulai aplikasi"
+          EOF
+          chmod +x dist/install_linux.sh
+
+      - name: Create Windows installer batch
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo @echo off > dist/install_windows.bat
+          echo echo Menyiapkan environment... >> dist/install_windows.bat
+          echo python -m pip install --upgrade pip >> dist/install_windows.bat
+          echo pip install -r requirements.txt >> dist/install_windows.bat
+          echo cd chatgpt-multifunction-frontend && npm install && npm run build >> dist/install_windows.bat
+          echo echo Selesai, jalankan main.py untuk memulai aplikasi >> dist/install_windows.bat
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: termux_app_build
+          path: dist/
+
