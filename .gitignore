@@ -40,3 +40,11 @@ ios/
 AizahraAI_backup/
 
 
+*.bak
+__pycache__/
+*.mp3
+*.mp4
+env/
+text2video/venv/
+output/
+
