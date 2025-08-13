@@ -1,0 +1,71 @@
+name: Deploy Fullstack App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Frontend & Backend
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Checkout repo
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 2. Setup Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    # 3. Setup Python
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    # 4. Install frontend dependencies and build (optional local build check)
+    - name: Build frontend
+      working-directory: chatgpt-multifunction-frontend
+      run: |
+        npm install
+        npm run build
+
+    # 5. Install backend dependencies (optional local check)
+    - name: Install backend dependencies
+      working-directory: backend
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # 6. Deploy to server via SSH
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v0.1.7
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        port: ${{ secrets.SERVER_PORT }}
+        script: |
+          cd /path/to/deploy/directory
+          git fetch origin
+          git reset --hard origin/main
+          
+          # Deploy Frontend
+          cd chatgpt-multifunction-frontend
+          npm install
+          npm run build
+          pm2 restart aizahra-frontend || pm2 start npm --name "aizahra-frontend" -- run start
+
+          # Deploy Backend
+          cd ../backend
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pm2 restart aizahra-backend || pm2 start python --name "aizahra-backend" -- app.py
+
