@@ -1,4 +1,24 @@
-# Node/React
+# Contoh isi minimal .gitignore:
+# *.env
+# *.env.local
+# node_modules/
+# build/
+# dist/
+# *.keystore
+# *.log
+# android/
+# ios/
+# .gradle/
+
+git add .gitignore
+git commit -m "Add .gitignore to prevent secrets and temp files"
+
+# Set remote repo GitHub
+git remote remove origin
+git remote add origin https://github.com/zahrastudio/AizahraAI.git
+
+# Push paksa riwayat bersih
+git push origin main --force# Node/React
 node_modules/
 dist/
 build/
@@ -18,4 +38,5 @@ ios/
 
 # Backup atau temp
 AizahraAI_backup/
+
 
